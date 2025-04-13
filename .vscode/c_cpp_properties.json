@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Mac OS (brew)",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "__SAMD21E18A__"
+            ],
+            "compilerPath": "/opt/homebrew/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}
