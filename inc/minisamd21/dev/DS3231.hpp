@@ -11,7 +11,7 @@ public:
     static constexpr uint8_t ADDR = 0x68;
     static constexpr uint8_t REG_TIME = 0x00;
     static constexpr uint8_t REG_STATUS = 0x0F;
-    static constexpr uint32_t BASE_YEAR = 2000; // Base year for conversion
+    static constexpr int32_t BASE_YEAR = 2000; // Base year for conversion
 
     // Time struct to hold the current time
     struct Time

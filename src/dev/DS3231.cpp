@@ -1,4 +1,5 @@
 #include "minisamd21/dev/DS3231.hpp"
+#include <algorithm>
 
 namespace minisamd21
 {
@@ -7,14 +8,11 @@ DS3231::DS3231(I2C &i2c) : i2c_(i2c) {}
 
 void DS3231::SetTime(uint32_t hour, uint32_t minute, uint32_t second, uint32_t day, uint32_t month, uint32_t year)
 {
-    int32_t year_fixed = year - BASE_YEAR;
-    if (year_fixed < 0)
-    {
-        return;
-    }
+    // Ensure year is between 0 and 99
+    int32_t year_fixed = std::clamp(static_cast<int>(year - BASE_YEAR), 0, 99);
     uint8_t data[8] = {0};
 
-    // Address 
+    // Address
     data[0] = REG_TIME;
 
     // Set the time (in BCD format)

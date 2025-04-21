@@ -40,8 +40,8 @@ int main()
         {
             delay = 50;
         }
-        
-        [[maybe_unused]] DS3231::Time time = ds3231.GetTime(); // Junk for now
+
+        [[maybe_unused]] DS3231::Time time = ds3231.GetTime();
         System::DelayMs(delay);
     }
 }
