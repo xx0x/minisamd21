@@ -41,6 +41,8 @@ add_executable(blink
     src/samd21_startup.c
     src/Pin.cpp
     src/System.cpp
+    src/I2C.cpp
+    src/dev/DS3231.cpp
 )
 
 # Add the .elf extension to the output file
