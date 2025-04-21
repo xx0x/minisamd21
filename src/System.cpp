@@ -51,6 +51,41 @@ void System::Init(ClockSource source)
     {
         // TODO
     }
+
+    // Configure SysTick to trigger every 1 ms
+    constexpr uint32_t ticks = 48000000 / 1000; // SystemCoreClock is the CPU clock frequency
+    SysTick->LOAD = ticks - 1;              // Set reload register
+    SysTick->VAL = 0;                       // Reset the SysTick counter value
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | // Use processor clock
+                    SysTick_CTRL_TICKINT_Msk |   // Enable SysTick interrupt
+                    SysTick_CTRL_ENABLE_Msk;     // Enable SysTick
 }
 
+// Delay for specified milliseconds using busy-wait on the millisecond counter
+void System::DelayMs(uint64_t delay)
+{
+    uint64_t start = GetMs();
+    while ((GetMs() - start) < delay)
+        ;
+}
+
+// Get elapsed milliseconds
+uint64_t System::GetMs()
+{
+    return millis_;
+}
+
+// Public tick handler for SysTick ISR
+void System::Tick()
+{
+    ++millis_;
+}
+
+}
+
+
+
+extern "C" void SysTick_Handler(void)
+{
+    minisamd21::System::Tick();
 }

@@ -14,7 +14,7 @@ void NMI_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void HardFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SVC_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void PendSV_Handler(void) __attribute__((weak, alias("Default_Handler")));
-void SysTick_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void SysTick_Handler(void);
 
 /* SAMD21 peripheral interrupt handlers */
 void PM_Handler(void) __attribute__((weak, alias("Default_Handler")));
