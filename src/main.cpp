@@ -28,7 +28,7 @@ int main()
     DS3231 ds3231(i2c);
 
     // HH:MM:SS, DD, MM, YY
-    DS3231::Time current_time = {4, 20, 0, 18, 8, 23};
+    DS3231::Time current_time = {4, 20, 0, 18, 8, 2023};
     ds3231.SetTime(current_time);
 
     // Main program loop
@@ -41,7 +41,7 @@ int main()
             delay = 50;
         }
         
-        // DS3231::Time time = ds3231.GetTime(); // Junk for now
+        [[maybe_unused]] DS3231::Time time = ds3231.GetTime(); // Junk for now
         System::DelayMs(delay);
     }
 }

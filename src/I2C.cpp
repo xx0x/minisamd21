@@ -38,35 +38,39 @@ void I2C::Write(uint8_t address, uint8_t *data, uint32_t length, bool nostop)
         // Clear bus error flag
         sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSERR;
     }
-    
+
     // Send bus clear command if needed
     if (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
     {
         // Force bus into idle state
         sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSSTATE(1);
         // Wait for change to take effect
-        while (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)));
+        while (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
+            ;
     }
 
     // Send repeated start command
     sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk; // Clear the CMD bits
     sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x1); // Set CMD to START
-    
+
     // Write address - shifted left by 1 and LSB set to 0 for write
     sercom_->I2CM.ADDR.reg = (address << 1) & ~0x01;
-    
-    // Check for NACK (no acknowledgment)
-    if (sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_RXNACK)
+
+    // Wait for acknowledgment (ACK) or detect NACK
+    while (!(sercom_->I2CM.INTFLAG.reg & SERCOM_I2CM_INTFLAG_MB))
     {
-        // Send STOP condition
-        sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x3);
-        return; // Exit if no acknowledgment
+        if (sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_RXNACK)
+        {
+            // Send STOP condition
+            sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x3);
+            return; // Exit if no acknowledgment
+        }
     }
 
     for (uint32_t i = 0; i < length; ++i)
     {
         sercom_->I2CM.DATA.reg = data[i];
-        
+
         // Wait for MB flag with timeout
         uint32_t timeout = 100000;
         while (!(sercom_->I2CM.INTFLAG.reg & SERCOM_I2CM_INTFLAG_MB) && timeout--)
@@ -77,7 +81,7 @@ void I2C::Write(uint8_t address, uint8_t *data, uint32_t length, bool nostop)
                 break;
             }
         }
-        
+
         // Check for NACK
         if (sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_RXNACK)
         {
@@ -101,23 +105,24 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
         // Clear bus error flag
         sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSERR;
     }
-    
+
     // Send bus clear command if needed
-    if (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
-    {
-        // Force bus into idle state
-        sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSSTATE(1);
-        // Wait for change to take effect
-        while (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)));
-    }
+    // if (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
+    // {
+    //     // Force bus into idle state
+    //     sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSSTATE(1);
+    //     // Wait for change to take effect
+    //     while (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
+    //         ;
+    // }
 
     // Send repeated start command
     sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk; // Clear the CMD bits
     sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x1); // Set CMD to START
-    
+
     // Write address - shifted left by 1 and LSB set to 1 for read
     sercom_->I2CM.ADDR.reg = ((address << 1) | 0x01);
-    
+
     // Check for NACK (no acknowledgment)
     if (sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_RXNACK)
     {
@@ -139,16 +144,16 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
                 break;
             }
         }
-        
+
         // Check if timed out or encountered an error
         if (timeout == 0 || (sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSERR))
         {
             break; // Exit loop on timeout or error
         }
-        
+
         // Read the data
         data[i] = sercom_->I2CM.DATA.reg;
-        
+
         // If this is the last byte, send NACK before reading
         if (i == length - 1)
         {
@@ -165,7 +170,7 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
     sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x3); // Set CMD to STOP
 }
 
-void I2C::ReadRegister(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, bool nostop)
+void I2C::WriteAddress(uint16_t address, uint8_t register_address, uint8_t address_size, bool nostop)
 {
     if (address_size == 1)
     {
@@ -175,16 +180,18 @@ void I2C::ReadRegister(uint16_t address, uint8_t register_address, uint8_t addre
     {
         Write(address, (uint8_t *)&register_address, 2, nostop);
     }
-
-    Read(address, data, 1);
 }
 
-void I2C::WriteRegisters(uint16_t address, uint8_t register_address, uint8_t *data, uint32_t length, bool nostop)
+void I2C::WriteRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length, bool nostop)
 {
-    uint8_t reg_address[2] = {(uint8_t)(register_address >> 8), (uint8_t)(register_address & 0xFF)};
-
-    Write(address, reg_address, 2, nostop);
+    WriteAddress(address, register_address, address_size, nostop);
     Write(address, data, length, nostop);
+}
+
+void I2C::ReadRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length, bool nostop)
+{
+    WriteAddress(address, register_address, address_size, nostop);
+    Read(address, data, length);
 }
 
 void I2C::EnablePeripheral()
@@ -193,15 +200,17 @@ void I2C::EnablePeripheral()
     {
         // Enable SERCOM0 clock
         PM->APBCMASK.reg |= PM_APBCMASK_SERCOM0;
-        
+
         // Set up GCLK for SERCOM0
         GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_SERCOM0_CORE_Val) |
-                           GCLK_CLKCTRL_GEN_GCLK0 |
-                           GCLK_CLKCTRL_CLKEN;
-        
+                            GCLK_CLKCTRL_GEN_GCLK0 |
+                            GCLK_CLKCTRL_CLKEN;
+
         // Wait for synchronization
-        while (GCLK->STATUS.bit.SYNCBUSY) {}
-        
+        while (GCLK->STATUS.bit.SYNCBUSY)
+        {
+        }
+
         // Configure pins
         PORT->Group[0].PINCFG[8].reg |= PORT_PINCFG_PMUXEN;
         PORT->Group[0].PINCFG[9].reg |= PORT_PINCFG_PMUXEN;
@@ -212,25 +221,29 @@ void I2C::EnablePeripheral()
     {
         // Enable SERCOM1 clock
         PM->APBCMASK.reg |= PM_APBCMASK_SERCOM1;
-        
+
         // Set up GCLK for SERCOM1
         GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_SERCOM1_CORE_Val) |
-                           GCLK_CLKCTRL_GEN_GCLK0 |
-                           GCLK_CLKCTRL_CLKEN;
-        
+                            GCLK_CLKCTRL_GEN_GCLK0 |
+                            GCLK_CLKCTRL_CLKEN;
+
         // Wait for synchronization
-        while (GCLK->STATUS.bit.SYNCBUSY) {}
-        
+        while (GCLK->STATUS.bit.SYNCBUSY)
+        {
+        }
+
         // Configure pins
         PORT->Group[0].PINCFG[22].reg |= PORT_PINCFG_PMUXEN;
         PORT->Group[0].PINCFG[23].reg |= PORT_PINCFG_PMUXEN;
         PORT->Group[0].PMUX[11].reg |= PORT_PMUX_PMUXE_C;
         PORT->Group[0].PMUX[11].reg |= PORT_PMUX_PMUXO_C;
     }
-    
+
     // Reset the SERCOM module before configuration
     sercom_->I2CM.CTRLA.bit.SWRST = 1;
-    while (sercom_->I2CM.CTRLA.bit.SWRST || sercom_->I2CM.SYNCBUSY.bit.SWRST) {}
+    while (sercom_->I2CM.CTRLA.bit.SWRST || sercom_->I2CM.SYNCBUSY.bit.SWRST)
+    {
+    }
 }
 
 } // namespace minisamd21
