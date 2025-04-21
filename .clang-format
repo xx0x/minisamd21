@@ -10,7 +10,7 @@ AccessModifierOffset: -4
 NamespaceIndentation: None
 FixNamespaceComments: false
 IncludeCategories:
-  - Regex:           '^<(std|math|cmath|cstring|string)'
+  - Regex:           '^<(std|math|cmath|cstring|string|cstdlib|cstddef|cstdint|cinttypes|limits|new|exception|type_traits|utility|initializer_list|array|deque|list|forward_list|vector|set|unordered_set|map|unordered_map)>'
     Priority:        1
   - Regex:           '^(samd21)'
     Priority:        2

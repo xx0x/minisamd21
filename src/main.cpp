@@ -1,13 +1,12 @@
-#include <stdint.h>
-
-#define LED_PIN 23
+#include <cstdint>
 
 #include "minisamd21/Pin.hpp"
 #include "minisamd21/System.hpp"
 
-#include "samd21.h"
-using namespace minisamd21;
+constexpr uint32_t BUTTON_PIN = 4;
+constexpr uint32_t LED_PIN = 23;
 
+using namespace minisamd21;
 
 int main()
 {
@@ -16,7 +15,7 @@ int main()
     Pin led(Pin::PortName::PORTA, LED_PIN);
     led.Init(Pin::Mode::OUTPUT);
 
-    Pin button(Pin::PortName::PORTA, 4);
+    Pin button(Pin::PortName::PORTA, BUTTON_PIN);
     button.Init(Pin::Mode::INPUT_PULLUP);
 
     // Main program loop

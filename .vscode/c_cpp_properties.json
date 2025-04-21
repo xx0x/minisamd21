@@ -4,7 +4,8 @@
             "name": "Mac OS (brew)",
             "includePath": [
                 "${workspaceFolder}/inc/*",
-                "${workspaceFolder}/platform/**"
+                "${workspaceFolder}/platform/CMSIS/5.4.0/CMSIS/Core/Include/*",
+                "${workspaceFolder}/platform/CMSIS-Atmel/1.2.2/CMSIS/Device/ATMEL/samd21/include/*"
             ],
             "defines": [
                 "__SAMD21E18A__"

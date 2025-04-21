@@ -1,5 +1,5 @@
 #include "minisamd21/Pin.hpp"
-#include "samd21.h" // Include the header file that defines PORT
+#include "samd21.h"
 
 using namespace minisamd21;
 
