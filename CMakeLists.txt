@@ -27,6 +27,7 @@ set(MCU_FLAGS
   -Wall
   -Werror
   -ffunction-sections
+  -fno-exceptions
   -fdata-sections
 )
 
@@ -34,6 +35,8 @@ set(MCU_FLAGS
 add_executable(blink
     src/main.cpp
     src/samd21_startup.c
+    src/Pin.cpp
+    src/System.cpp
 )
 
 # Add the .elf extension to the output file
@@ -41,6 +44,7 @@ set_target_properties(blink PROPERTIES OUTPUT_NAME "blink.elf")
 
 # Add CMSIS and Atmel CMSIS include directories
 target_include_directories(blink PRIVATE
+    ${CMAKE_SOURCE_DIR}/inc
     ${CMAKE_SOURCE_DIR}/platform/CMSIS/5.4.0/CMSIS/Core/Include
     ${CMAKE_SOURCE_DIR}/platform/CMSIS-Atmel/1.2.2/CMSIS/Device/ATMEL/samd21/include
 )

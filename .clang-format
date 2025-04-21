@@ -1,0 +1,20 @@
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+AccessModifierOffset: -4
+NamespaceIndentation: None
+FixNamespaceComments: false
+IncludeCategories:
+  - Regex:           '^<(std|math|cmath|cstring|string)'
+    Priority:        1
+  - Regex:           '^(samd21)'
+    Priority:        2
+  - Regex:           '^"(minisamd21)/'
+    Priority:        3
+  - Regex:           '.*'
+    Priority:        4

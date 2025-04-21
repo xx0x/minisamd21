@@ -1,45 +1,41 @@
 #include <stdint.h>
 
-#define LED_PORT 0
-#define LED_PIN  23
+#define LED_PIN 23
+
+#include "minisamd21/Pin.hpp"
+#include "minisamd21/System.hpp"
 
 #include "samd21.h"
+using namespace minisamd21;
 
-void delay_ms(uint32_t ms) {
+void delay_ms(uint32_t ms)
+{
     // For 48MHz clock (48,000 cycles per millisecond)
-    SysTick->LOAD  = 48000 - 1;
-    SysTick->VAL   = 0;
-    SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
+    SysTick->LOAD = 48000 - 1;
+    SysTick->VAL = 0;
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
 
-    for (uint32_t i = 0; i < ms; ++i) {
-        while ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0);
+    for (uint32_t i = 0; i < ms; ++i)
+    {
+        while ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == 0)
+            ;
     }
 
     SysTick->CTRL = 0;
 }
 
-void init_led() {
-    /* Enable PORT peripheral clock */
-    PM->APBBMASK.reg |= PM_APBBMASK_PORT;
-    
-    /* Configure LED pin as output */
-    PORT->Group[LED_PORT].DIRSET.reg = (1 << LED_PIN);
-    
-    /* Set initial state to off (low) */
-    PORT->Group[LED_PORT].OUTCLR.reg = (1 << LED_PIN);
-}
 
-void toggle_led() {
-    PORT->Group[LED_PORT].OUTTGL.reg = (1 << LED_PIN);
-}
+int main()
+{
+    System::Init(System::ClockSource::INTERNAL_OSC);
 
-int main() {
-    /* Initialize the LED pin */
-    init_led();
-    
+    Pin led(Pin::PortName::PORTA, LED_PIN);
+    led.Init(Pin::Mode::OUTPUT);
+
     /* Main program loop */
-    while (1) {
-        toggle_led();
-        delay_ms(500);
+    while (1)
+    {
+        led.Toggle();
+        delay_ms(100);
     }
 }

@@ -3,7 +3,8 @@
         {
             "name": "Mac OS (brew)",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/inc/*",
+                "${workspaceFolder}/platform/**"
             ],
             "defines": [
                 "__SAMD21E18A__"
