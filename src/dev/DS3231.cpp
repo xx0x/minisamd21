@@ -12,21 +12,24 @@ void DS3231::SetTime(uint32_t hour, uint32_t minute, uint32_t second, uint32_t d
     {
         return;
     }
-    uint8_t data[7] = {0};
+    uint8_t data[8] = {0};
+
+    // Address 
+    data[0] = REG_TIME;
 
     // Set the time (in BCD format)
-    data[0] = DecToBcd(second);          // Seconds
-    data[1] = DecToBcd(minute);          // Minutes
-    data[2] = DecToBcd(hour) & 0b111111; // Hours (no AM/PM bit, 24-hour format)
+    data[1] = DecToBcd(second);          // Seconds
+    data[2] = DecToBcd(minute);          // Minutes
+    data[3] = DecToBcd(hour) & 0b111111; // Hours (no AM/PM bit, 24-hour format)
 
     // Set the date (in BCD format)
-    data[3] = 0;                    // Day of the week (not used)
-    data[4] = DecToBcd(day);        // Month
-    data[5] = DecToBcd(month);      // Month
-    data[6] = DecToBcd(year_fixed); // Year 0-99
+    data[4] = 0;                    // Day of the week (not used)
+    data[5] = DecToBcd(day);        // Month
+    data[6] = DecToBcd(month);      // Month
+    data[7] = DecToBcd(year_fixed); // Year 0-99
 
     // Write the time and date to the DS3231
-    i2c_.WriteRegisters(ADDR, REG_TIME, 1, data, 7);
+    i2c_.Write(ADDR, data, 8);
 }
 
 void DS3231::SetTime(const Time &time)
@@ -37,11 +40,9 @@ void DS3231::SetTime(const Time &time)
 DS3231::Time DS3231::GetTime()
 {
     uint8_t data[7] = {0};
-    uint8_t buff[2] = {REG_TIME};
 
     // Read the time from the DS3231
-    i2c_.Write(ADDR, buff, 1, true); // Send the register address
-    i2c_.Read(ADDR, data, 7);        // Read the 7 bytes of time data
+    i2c_.ReadRegisters(ADDR, REG_TIME, 1, data, 7);
 
     // Convert BCD to decimal and store in the Time struct
     Time current_time;

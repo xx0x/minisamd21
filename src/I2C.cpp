@@ -106,19 +106,19 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
         sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSERR;
     }
 
-    // Send bus clear command if needed
-    // if (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
-    // {
-    //     // Force bus into idle state
-    //     sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSSTATE(1);
-    //     // Wait for change to take effect
-    //     while (!(sercom_->I2CM.STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1)))
-    //         ;
-    // }
-
     // Send repeated start command
     sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk; // Clear the CMD bits
     sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x1); // Set CMD to START
+
+    // Set ACK action for all bytes except the last one
+    if (length > 1)
+    {
+        sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT; // Clear ACKACT (send ACK)
+    }
+    else
+    {
+        sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT; // Set ACKACT (send NACK)
+    }
 
     // Write address - shifted left by 1 and LSB set to 1 for read
     sercom_->I2CM.ADDR.reg = ((address << 1) | 0x01);
@@ -154,14 +154,22 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
         // Read the data
         data[i] = sercom_->I2CM.DATA.reg;
 
-        // If this is the last byte, send NACK before reading
-        if (i == length - 1)
+        // If this is not the last byte, prepare for next byte
+        if (i < length - 1) 
         {
-            sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT; // Send NACK
-        }
-        else
-        {
-            sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT; // Send ACK
+            // Set ACK/NACK for the next byte
+            if (i == length - 2) // Next byte is the last byte
+            {
+                sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT; // Send NACK for last byte
+            }
+            else
+            {
+                sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT; // Send ACK
+            }
+            
+            // Issue READ command to continue the transaction
+            sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk;
+            sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x2); // Set CMD to READ
         }
     }
 
@@ -182,15 +190,15 @@ void I2C::WriteAddress(uint16_t address, uint8_t register_address, uint8_t addre
     }
 }
 
-void I2C::WriteRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length, bool nostop)
+void I2C::WriteRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length)
 {
-    WriteAddress(address, register_address, address_size, nostop);
-    Write(address, data, length, nostop);
+    WriteAddress(address, register_address, address_size, true);
+    Write(address, data, length);
 }
 
-void I2C::ReadRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length, bool nostop)
+void I2C::ReadRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length)
 {
-    WriteAddress(address, register_address, address_size, nostop);
+    WriteAddress(address, register_address, address_size, true);
     Read(address, data, length);
 }
 
