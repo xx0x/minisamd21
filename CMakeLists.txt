@@ -31,6 +31,10 @@ set(MCU_FLAGS
   -fdata-sections
 )
 
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Source files
 add_executable(blink
     src/main.cpp
