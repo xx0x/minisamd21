@@ -41,10 +41,10 @@ public:
     bool Read() const;
 
     // Set the pin HIGH or LOW
-    void Write(bool value) const;
+    void Write(bool value);
 
     // Toggle the pin
-    void Toggle() const;
+    void Toggle();
 
 private:
     PortName port_;

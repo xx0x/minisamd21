@@ -35,7 +35,7 @@ bool Pin::Read() const
     return (PORT->Group[static_cast<uint8_t>(port_)].IN.reg & (1 << pin_)) != 0;
 }
 
-void Pin::Write(bool value) const
+void Pin::Write(bool value)
 {
     if (value)
     {
@@ -47,7 +47,7 @@ void Pin::Write(bool value) const
     }
 }
 
-void Pin::Toggle() const
+void Pin::Toggle()
 {
     PORT->Group[static_cast<uint8_t>(port_)].OUTTGL.reg = (1 << pin_);
 }
