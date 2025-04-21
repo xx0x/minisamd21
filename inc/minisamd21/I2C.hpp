@@ -10,8 +10,8 @@ class I2C
 public:
     enum class Interface
     {
-        TWI0 = 0, // PA08 = SCL, PA09 = SDA
-        TWI1 = 1, // PA22 = SCL, PA23 = SDA
+        TWI0 = 0, // PA08 = SDA, PA09 = SCL
+        TWI1 = 1, // PA22 = SDA, PA23 = SCL
     };
     
     void Init(Interface iface, uint32_t baud);
