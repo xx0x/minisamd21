@@ -106,19 +106,12 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
         sercom_->I2CM.STATUS.reg = SERCOM_I2CM_STATUS_BUSERR;
     }
 
+    // Always start with ACK enabled (we want to ACK all but the last byte)
+    sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT;
+
     // Send repeated start command
     sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk; // Clear the CMD bits
     sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x1); // Set CMD to START
-
-    // Set ACK action for all bytes except the last one
-    if (length > 1)
-    {
-        sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT; // Clear ACKACT (send ACK)
-    }
-    else
-    {
-        sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT; // Set ACKACT (send NACK)
-    }
 
     // Write address - shifted left by 1 and LSB set to 1 for read
     sercom_->I2CM.ADDR.reg = ((address << 1) | 0x01);
@@ -151,26 +144,22 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
             break; // Exit loop on timeout or error
         }
 
-        // Read the data
+        // Before reading the last byte, set NACK to indicate end of transfer
+        if (i == length - 1)
+        {
+            // For the last byte, we've already read it, so just break the loop
+            data[i] = sercom_->I2CM.DATA.reg;
+            // Set NACK for the last byte
+            sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT;
+            break;
+        }
+
+        // Read current byte
         data[i] = sercom_->I2CM.DATA.reg;
 
-        // If this is not the last byte, prepare for next byte
-        if (i < length - 1) 
-        {
-            // Set ACK/NACK for the next byte
-            if (i == length - 2) // Next byte is the last byte
-            {
-                sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT; // Send NACK for last byte
-            }
-            else
-            {
-                sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT; // Send ACK
-            }
-            
-            // Issue READ command to continue the transaction
-            sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk;
-            sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x2); // Set CMD to READ
-        }
+        // Issue READ command to continue transaction
+        sercom_->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_CMD_Msk;
+        sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x2); // Set CMD to READ
     }
 
     // Send STOP condition
