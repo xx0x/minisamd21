@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include "minisamd21/AdcInput.hpp"
 #include "minisamd21/I2C.hpp"
 #include "minisamd21/Pin.hpp"
 #include "minisamd21/System.hpp"
@@ -20,6 +21,8 @@ int main()
 
     Pin button(Pin::PortName::PORTA, BUTTON_PIN);
     button.Init(Pin::Mode::INPUT_PULLUP);
+
+    AdcInput adc = AdcInput::Create(Pin::PortName::PORTA, 2);
 
     // Initialize I2C
     I2C i2c(I2C::Interface::TWI0);
@@ -51,5 +54,8 @@ int main()
         char read_hello[15] = {0};
         eeprom.Read(0x0, (uint8_t *)read_hello, 15);
         System::DelayMs(delay);
+
+        [[maybe_unused]] uint16_t adc_value = adc.Read();
+        System::DelayMs(10);
     }
 }

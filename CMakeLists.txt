@@ -41,6 +41,7 @@ add_executable(blink
     src/samd21_startup.c
     src/Pin.cpp
     src/System.cpp
+    src/AdcInput.cpp
     src/I2C.cpp
     src/dev/DS3231.cpp
     src/dev/AT24XX.cpp
