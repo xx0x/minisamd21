@@ -43,6 +43,7 @@ add_executable(blink
     src/System.cpp
     src/I2C.cpp
     src/dev/DS3231.cpp
+    src/dev/AT24XX.cpp
 )
 
 # Add the .elf extension to the output file

@@ -22,15 +22,15 @@ public:
     void Write(uint8_t address, uint8_t *data, uint32_t length, bool nostop = false);
     void Read(uint8_t address, uint8_t *data, uint32_t length);
 
-    void WriteRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length);
-    void ReadRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length);
+    void WriteRegisters(uint16_t address, uint16_t register_address, uint8_t register_address_size, uint8_t *data, uint32_t length);
+    void ReadRegisters(uint16_t address, uint16_t register_address, uint8_t register_address_size, uint8_t *data, uint32_t length);
 
 private:
     Sercom *sercom_;
     uint32_t baud_ = 0;
 
     void EnablePeripheral();
-    void WriteAddress(uint16_t address, uint8_t register_address, uint8_t address_size, bool nostop = false);
+    void FillAddress(uint16_t register_address, uint8_t address_size, uint8_t *data);
 };
 
 } // namespace minisamd21

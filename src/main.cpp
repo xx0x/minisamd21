@@ -3,6 +3,7 @@
 #include "minisamd21/I2C.hpp"
 #include "minisamd21/Pin.hpp"
 #include "minisamd21/System.hpp"
+#include "minisamd21/dev/AT24XX.hpp"
 #include "minisamd21/dev/DS3231.hpp"
 
 constexpr uint32_t BUTTON_PIN = 4;
@@ -31,6 +32,11 @@ int main()
     DS3231::Time current_time = {4, 20, 0, 18, 8, 2023};
     ds3231.SetTime(current_time);
 
+    // Initilize memory
+    AT24XX eeprom = AT24XX::AT24C32(i2c, 0x57);
+    const char *hello = "Hello, World!";
+    eeprom.Write(0x0, (uint8_t *)hello, 15);
+
     // Main program loop
     while (1)
     {
@@ -42,6 +48,8 @@ int main()
         }
 
         [[maybe_unused]] DS3231::Time time = ds3231.GetTime();
+        char read_hello[15] = {0};
+        eeprom.Read(0x0, (uint8_t *)read_hello, 15);
         System::DelayMs(delay);
     }
 }

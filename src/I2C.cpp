@@ -173,27 +173,36 @@ void I2C::Read(uint8_t address, uint8_t *data, uint32_t length)
     sercom_->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(0x3); // Set CMD to STOP
 }
 
-void I2C::WriteAddress(uint16_t address, uint8_t register_address, uint8_t address_size, bool nostop)
+void I2C::FillAddress(uint16_t register_address, uint8_t register_address_size, uint8_t *data)
 {
-    if (address_size == 1)
+    if (register_address_size == 1)
     {
-        Write(address, &register_address, 1, nostop);
+        data[0] = register_address;
     }
-    else if (address_size == 2)
+    else if (register_address_size == 2)
     {
-        Write(address, (uint8_t *)&register_address, 2, nostop);
+        data[0] = (register_address >> 8) & 0xFF; // MSB
+        data[1] = register_address & 0xFF;        // LSB
     }
 }
 
-void I2C::WriteRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length)
+void I2C::WriteRegisters(uint16_t address, uint16_t register_address, uint8_t register_address_size, uint8_t *data, uint32_t length)
 {
-    WriteAddress(address, register_address, address_size, true);
-    Write(address, data, length);
+    uint8_t combined_data[length + register_address_size] = {0};
+    FillAddress(register_address, register_address_size, combined_data);
+    for (uint32_t i = 0; i < length; ++i)
+    {
+        combined_data[i + register_address_size] = data[i];
+    }
+    Write(address, combined_data, length + 1);
 }
 
-void I2C::ReadRegisters(uint16_t address, uint8_t register_address, uint8_t address_size, uint8_t *data, uint32_t length)
+void I2C::ReadRegisters(uint16_t address, uint16_t register_address, uint8_t register_address_size, uint8_t *data, uint32_t length)
 {
-    WriteAddress(address, register_address, address_size, true);
+    uint8_t address_data[register_address_size] = {0};
+    FillAddress(register_address, register_address_size, address_data);
+    Write(address, address_data, register_address_size, true);
+    //WriteAddress(address, register_address, address_size, true);
     Read(address, data, length);
 }
 

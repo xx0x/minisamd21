@@ -10,24 +10,21 @@ void DS3231::SetTime(uint32_t hour, uint32_t minute, uint32_t second, uint32_t d
 {
     // Ensure year is between 0 and 99
     int32_t year_fixed = std::clamp(static_cast<int>(year - BASE_YEAR), 0, 99);
-    uint8_t data[8] = {0};
-
-    // Address
-    data[0] = REG_TIME;
+    uint8_t data[7] = {0};
 
     // Set the time (in BCD format)
-    data[1] = DecToBcd(second);          // Seconds
-    data[2] = DecToBcd(minute);          // Minutes
-    data[3] = DecToBcd(hour) & 0b111111; // Hours (no AM/PM bit, 24-hour format)
+    data[0] = DecToBcd(second);          // Seconds
+    data[1] = DecToBcd(minute);          // Minutes
+    data[2] = DecToBcd(hour) & 0b111111; // Hours (no AM/PM bit, 24-hour format)
 
     // Set the date (in BCD format)
-    data[4] = 0;                    // Day of the week (not used)
-    data[5] = DecToBcd(day);        // Month
-    data[6] = DecToBcd(month);      // Month
-    data[7] = DecToBcd(year_fixed); // Year 0-99
+    data[3] = 0;                    // Day of the week (not used)
+    data[4] = DecToBcd(day);        // Month
+    data[5] = DecToBcd(month);      // Month
+    data[6] = DecToBcd(year_fixed); // Year 0-99
 
     // Write the time and date to the DS3231
-    i2c_.Write(ADDR, data, 8);
+    i2c_.WriteRegisters(ADDR, REG_TIME, 1, data, 7);
 }
 
 void DS3231::SetTime(const Time &time)
