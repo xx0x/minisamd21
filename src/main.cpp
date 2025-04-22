@@ -21,8 +21,8 @@ int main()
     button.Init(Pin::Mode::INPUT_PULLUP);
 
     // Initialize I2C
-    I2C i2c;
-    i2c.Init(I2C::Interface::TWI0, 100000);
+    I2C i2c(I2C::Interface::TWI0);
+    i2c.Init(I2C::SPEED_100KHZ);
 
     // Initialize DS3231
     DS3231 ds3231(i2c);

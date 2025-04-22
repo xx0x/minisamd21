@@ -3,20 +3,26 @@
 namespace minisamd21
 {
 
-void I2C::Init(Interface iface, uint32_t baud)
+I2C::I2C(Interface iface)
 {
     // Set the interface
-    if (iface == Interface::TWI0)
+    switch (iface)
     {
+    case Interface::TWI0:
         sercom_ = SERCOM0;
-    }
-    else if (iface == Interface::TWI1)
-    {
+        break;
+    case Interface::TWI1:
         sercom_ = SERCOM1;
+        break;
+    default:
+        sercom_ = nullptr;
+        break;
     }
-
     EnablePeripheral();
+}
 
+void I2C::Init(uint32_t baud)
+{
     // Init
     sercom_->I2CM.CTRLA.reg = SERCOM_I2CM_CTRLA_MODE(0x5) |
                               SERCOM_I2CM_CTRLA_SDAHOLD(0x3) |
