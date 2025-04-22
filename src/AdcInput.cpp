@@ -1,6 +1,5 @@
 #include "minisamd21/AdcInput.hpp"
 #include "samd21.h"
-#include <cassert> // Include for assert()
 
 using namespace minisamd21;
 
@@ -86,17 +85,19 @@ void AdcInput::Init(Resolution res, Reference ref)
     while (ADC->CTRLA.bit.SWRST)
         ;
 
+    SetAveraging(Averaging::SAMPLES_64);
+
     // Set reference
     SetReference(ref);
 
     // Set resolution
     SetResolution(res);
 
-    // Set clock prescaler (divide input clock by 512)
-    ADC->CTRLB.reg |= ADC_CTRLB_PRESCALER_DIV512;
+    // Set clock prescaler (divide input clock by 16)
+    ADC->CTRLB.reg |= ADC_CTRLB_PRESCALER_DIV16;
 
     // Set sample time length
-    ADC->SAMPCTRL.reg = ADC_SAMPCTRL_SAMPLEN(64);
+    ADC->SAMPCTRL.reg = ADC_SAMPCTRL_SAMPLEN(32);
 
     // Configure pin as analog input
     PORT->Group[static_cast<uint8_t>(port_)].DIRCLR.reg = (1 << pin_);    // Set as input
@@ -117,9 +118,9 @@ void AdcInput::Init(Resolution res, Reference ref)
 
 uint16_t AdcInput::Read() const
 {
-    // Select the ADC input channel without overriding the gain
-    ADC->INPUTCTRL.reg = (ADC->INPUTCTRL.reg & ~ADC_INPUTCTRL_MUXPOS_Msk) |
-                         ADC_INPUTCTRL_MUXPOS(channel_);
+    // Select the ADC input channel
+    ADC->INPUTCTRL.bit.MUXPOS = channel_;
+
     SyncBusy();
 
     // Start the conversion
@@ -188,6 +189,21 @@ void AdcInput::SetResolution(Resolution res)
         ADC->CTRLB.reg |= ADC_CTRLB_RESSEL_8BIT;
         break;
     }
+
+    SyncBusy();
+}
+
+void AdcInput::SetAveraging(Averaging samples)
+{
+    uint8_t sample_num = static_cast<uint8_t>(samples);
+    uint8_t adjres = sample_num;
+    if (adjres > 0x4)
+    {
+        adjres = 0x4;
+    }
+
+    // Set the number of samples to average and adjust the result
+    ADC->AVGCTRL.reg = ADC_AVGCTRL_SAMPLENUM(sample_num) | ADC_AVGCTRL_ADJRES(adjres);
 
     SyncBusy();
 }

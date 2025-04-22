@@ -28,6 +28,23 @@ public:
         BIT8,  // 8-bit resolution
     };
 
+    // Number of samples to average
+    // As defined by ADC_AVGCTRL_SAMPLENUM_*_Val
+    enum class Averaging
+    {
+        SAMPLES_1,
+        SAMPLES_2,
+        SAMPLES_4,
+        SAMPLES_8,
+        SAMPLES_16,
+        SAMPLES_32,
+        SAMPLES_64,
+        SAMPLES_128,
+        SAMPLES_256,
+        SAMPLES_512,
+        SAMPLES_1024
+    };
+
     // Constructor
     AdcInput(Pin::PortName port, uint8_t pin);
 
@@ -50,6 +67,9 @@ public:
 
     // Set the resolution
     void SetResolution(Resolution res);
+
+    // Set the number of samples to average
+    void SetAveraging(Averaging samples);
 
 private:
     Pin::PortName port_;
