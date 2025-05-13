@@ -14,14 +14,14 @@ void NMI_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void HardFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SVC_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void PendSV_Handler(void) __attribute__((weak, alias("Default_Handler")));
-extern void SysTick_Handler(void);
+extern void SysTick_Handler(void); // Handled in System.cpp
 
 /* SAMD21 peripheral interrupt handlers */
 void PM_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SYSCTRL_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void WDT_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void RTC_Handler(void) __attribute__((weak, alias("Default_Handler")));
-void EIC_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EIC_Handler(void); // Handled in Pin.cpp
 void NVMCTRL_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void DMAC_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void USB_Handler(void) __attribute__((weak, alias("Default_Handler")));

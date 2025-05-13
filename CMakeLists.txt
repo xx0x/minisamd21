@@ -40,6 +40,7 @@ add_executable(blink
     src/main.cpp
     src/samd21_startup.c
     src/Pin.cpp
+    src/Sleep.cpp
     src/System.cpp
     src/AdcInput.cpp
     src/I2C.cpp
