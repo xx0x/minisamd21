@@ -14,7 +14,6 @@ namespace minisamd21
 class Pin
 {
 public:
-
     // Callback type for interrupt handlers
     using Callback = void (*)();
 
@@ -40,13 +39,12 @@ public:
     };
 
     // Constructor
-    Pin(PortName port, uint8_t pin);
-
-    // Static function to create and initialize a pin
-    static Pin Create(PortName port, uint8_t pin, Mode mode);
+    Pin(PortName port, uint8_t pin) : port_(port), pin_(pin) {}
 
     // Initialize the pin
     void Init(Mode mode);
+
+    void DeInit();
 
     // Read the pin (returns true for HIGH, false for LOW)
     bool Read() const;
@@ -80,7 +78,7 @@ private:
     static inline Callback interrupt_callbacks_[32] = {nullptr};
     static inline bool interrupt_attached_[32] = {false};
     static inline bool eic_initialized_ = false;
-    
+
     // Initialize the External Interrupt Controller
     static void InitEIC();
 };

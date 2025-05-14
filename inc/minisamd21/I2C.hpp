@@ -19,6 +19,7 @@ public:
 
     I2C(Interface iface);
     void Init(uint32_t baud);
+    void DeInit();
     void Write(uint8_t address, uint8_t *data, uint32_t length, bool nostop = false);
     void Read(uint8_t address, uint8_t *data, uint32_t length);
 

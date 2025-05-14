@@ -19,8 +19,11 @@ public:
     // Function to initialize the system with selected oscillator source
     static void Init(ClockSource source);
 
-    // Delay for specified milliseconds and update internal millisecond counter
-    static void DelayMs(uint64_t delay);
+    // Delay for specified milliseconds
+    static void DelayMs(uint64_t delay_ms);
+    
+    // Delay for specified microseconds (approximately)
+    static void DelayUs(uint32_t delay_us);
 
     // Get the number of milliseconds elapsed (tracked by System)
     static uint64_t GetMs();
@@ -28,7 +31,11 @@ public:
     // Increment millisecond counter (called by ISR)
     static void Tick();
 
+    // System clock frequency
+    static constexpr uint32_t FREQUENCY = 48000000; // 48MHz
+
 private:
+
     // Internal millisecond counter
     static inline uint64_t millis_ = 0;
 };

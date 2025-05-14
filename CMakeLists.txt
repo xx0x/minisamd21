@@ -44,6 +44,7 @@ add_executable(blink
     src/System.cpp
     src/AdcInput.cpp
     src/I2C.cpp
+    src/dev/OutShiftRegister.cpp
     src/dev/DS3231.cpp
     src/dev/AT24XX.cpp
 )

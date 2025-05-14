@@ -4,15 +4,6 @@
 namespace minisamd21
 {
 
-Pin::Pin(PortName port, uint8_t pin) : port_(port), pin_(pin) {}
-
-Pin Pin::Create(PortName port, uint8_t pin, Mode mode)
-{
-    Pin pin_instance(port, pin);
-    pin_instance.Init(mode);
-    return pin_instance;
-}
-
 void Pin::Init(Mode mode)
 {
     // Enable the port clock if it's not already enabled
@@ -49,6 +40,14 @@ void Pin::Init(Mode mode)
             PORT->Group[static_cast<uint8_t>(port_)].PINCFG[pin_].reg |= PORT_PINCFG_PULLEN;
         }
     }
+}
+
+void Pin::DeInit()
+{
+    // Disable the pin
+    PORT->Group[static_cast<uint8_t>(port_)].DIRCLR.reg = (1 << pin_);              // Set pin as input
+    PORT->Group[static_cast<uint8_t>(port_)].PINCFG[pin_].reg &= ~PORT_PINCFG_INEN; // Disable input
+    PORT->Group[static_cast<uint8_t>(port_)].OUTCLR.reg = (1 << pin_);              // Disable pull-up
 }
 
 bool Pin::Read() const
@@ -221,24 +220,21 @@ void Pin::InterruptHandler(uint8_t pinNumber)
 
 } // namespace minisamd21
 
-extern "C"
+extern "C" void EIC_Handler()
 {
-    void EIC_Handler()
+    // Get the interrupt flags to determine which pins triggered
+    uint32_t flags = EIC->INTFLAG.reg;
+
+    // Process all pins that have pending interrupts
+    for (int i = 0; i < 32; ++i)
     {
-        // Get the interrupt flags to determine which pins triggered
-        uint32_t flags = EIC->INTFLAG.reg;
-
-        // Process all pins that have pending interrupts
-        for (int i = 0; i < 32; ++i)
+        if (flags & (1 << i))
         {
-            if (flags & (1 << i))
-            {
-                // Call the handler for this pin
-                minisamd21::Pin::InterruptHandler(i);
+            // Call the handler for this pin
+            minisamd21::Pin::InterruptHandler(i);
 
-                // Clear the interrupt flag by writing 1 to it
-                EIC->INTFLAG.reg = (1 << i);
-            }
+            // Clear the interrupt flag by writing 1 to it
+            EIC->INTFLAG.reg = (1 << i);
         }
     }
 }

@@ -36,6 +36,21 @@ void I2C::Init(uint32_t baud)
     }
 }
 
+void I2C::DeInit()
+{
+    // Disable the I2C interface
+    sercom_->I2CM.CTRLA.reg &= ~SERCOM_I2CM_CTRLA_ENABLE;
+    while (sercom_->I2CM.SYNCBUSY.reg)
+    {
+    }
+
+    // Reset the SERCOM module
+    sercom_->I2CM.CTRLA.bit.SWRST = 1;
+    while (sercom_->I2CM.CTRLA.bit.SWRST || sercom_->I2CM.SYNCBUSY.bit.SWRST)
+    {
+    }
+}
+
 void I2C::Write(uint8_t address, uint8_t *data, uint32_t length, bool nostop)
 {
     // First, check bus status and clear any error conditions

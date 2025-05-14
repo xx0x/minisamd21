@@ -53,7 +53,7 @@ void System::Init(ClockSource source)
     }
 
     // Configure SysTick to trigger every 1 ms
-    constexpr uint32_t ticks = 48000000 / 1000;  // SystemCoreClock is the CPU clock frequency
+    constexpr uint32_t ticks = FREQUENCY / 1000; // SystemCoreClock is the CPU clock frequency
     SysTick->LOAD = ticks - 1;                   // Set reload register
     SysTick->VAL = 0;                            // Reset the SysTick counter value
     SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | // Use processor clock
@@ -62,11 +62,34 @@ void System::Init(ClockSource source)
 }
 
 // Delay for specified milliseconds using busy-wait on the millisecond counter
-void System::DelayMs(uint64_t delay)
+void System::DelayMs(uint64_t delay_ms)
 {
     uint64_t start = GetMs();
-    while ((GetMs() - start) < delay)
+    while ((GetMs() - start) < delay_ms)
         ;
+}
+
+/**
+ * Taken from Arduino SAMD core (LGPL license)
+ * Copyright (c) 2015 Arduino LLC. All right reserved.
+ */
+void System::DelayUs(uint32_t delay_us)
+{
+    if (delay_us <= 0)
+    {
+        return;
+    }
+    // VARIANT_MCK / 1000000 == cycles needed to delay 1uS
+    //                     3 == cycles used in a loop
+    uint32_t n = delay_us * (FREQUENCY / 1000000) / 3;
+    __asm__ __volatile__(
+        "1:              \n"
+        "   sub %0, #1   \n" // substract 1 from %0 (n)
+        "   bne 1b       \n" // if result is not 0 jump to 1
+        : "+r"(n)            // '%0' is n variable with RW constraints
+        :                    // no input
+        :                    // no clobber
+    );
 }
 
 // Get elapsed milliseconds
