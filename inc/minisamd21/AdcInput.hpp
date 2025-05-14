@@ -46,13 +46,7 @@ public:
     };
 
     // Constructor
-    AdcInput(Pin::PortName port, uint8_t pin);
-
-    // Static function to create and initialize an ADC
-    static AdcInput Create(Pin::PortName port,
-                           uint8_t pin,
-                           Resolution res = Resolution::BIT12,
-                           Reference ref = Reference::INTVCC1);
+    AdcInput(Pin pin);
 
     // Initialize the ADC
     void Init(
@@ -72,12 +66,11 @@ public:
     void SetAveraging(Averaging samples);
 
 private:
-    Pin::PortName port_;
-    uint8_t pin_;
+    Pin pin_;         // Pin object
     uint8_t channel_; // ADC input channel number
 
     // Map pin to ADC channel
-    static uint8_t MapPinToChannel(Pin::PortName port, uint8_t pin);
+    static uint8_t MapPinToChannel(Pin pin);
 
     inline void SyncBusy() const
     {

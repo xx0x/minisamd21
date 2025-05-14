@@ -3,12 +3,15 @@
 
 using namespace minisamd21;
 
-uint8_t AdcInput::MapPinToChannel(Pin::PortName port, uint8_t pin)
+uint8_t AdcInput::MapPinToChannel(Pin pin)
 {
+    uint8_t pin_no = pin.GetPin();
+    Pin::PortName port = pin.GetPort();
+
     switch (port)
     {
     case Pin::PortName::PORTA:
-        switch (pin)
+        switch (pin_no)
         {
         case 2:
             return 0; // PA02 = AIN0
@@ -31,7 +34,7 @@ uint8_t AdcInput::MapPinToChannel(Pin::PortName port, uint8_t pin)
             return 0xFF; // Invalid channel
         }
     case Pin::PortName::PORTB:
-        switch (pin)
+        switch (pin_no)
         {
         case 0:
             return 8; // PB00 = AIN8
@@ -48,9 +51,9 @@ uint8_t AdcInput::MapPinToChannel(Pin::PortName port, uint8_t pin)
     }
 }
 
-AdcInput::AdcInput(Pin::PortName port, uint8_t pin) : port_(port), pin_(pin)
+AdcInput::AdcInput(Pin pin) : pin_(pin)
 {
-    channel_ = MapPinToChannel(port, pin);
+    channel_ = MapPinToChannel(pin);
     if (channel_ == 0xFF)
     {
         while (1)
@@ -58,13 +61,6 @@ AdcInput::AdcInput(Pin::PortName port, uint8_t pin) : port_(port), pin_(pin)
             // fail, invalid pin
         }
     }
-}
-
-AdcInput AdcInput::Create(Pin::PortName port, uint8_t pin, Resolution res, Reference ref)
-{
-    AdcInput adc_instance(port, pin);
-    adc_instance.Init(res, ref);
-    return adc_instance;
 }
 
 void AdcInput::Init(Resolution res, Reference ref)
@@ -99,17 +95,20 @@ void AdcInput::Init(Resolution res, Reference ref)
     // Set sample time length
     ADC->SAMPCTRL.reg = ADC_SAMPCTRL_SAMPLEN(32);
 
-    // Configure pin as analog input
-    PORT->Group[static_cast<uint8_t>(port_)].DIRCLR.reg = (1 << pin_);    // Set as input
-    PORT->Group[static_cast<uint8_t>(port_)].PINCFG[pin_].bit.PMUXEN = 1; // Enable peripheral mux
+    uint8_t pin_no = pin_.GetPin();
+    uint8_t port_no = static_cast<uint8_t>(pin_.GetPort());
 
-    if (pin_ & 1) // Odd pin number
+    // Configure pin as analog input
+    PORT->Group[port_no].DIRCLR.reg = (1 << pin_no);    // Set as input
+    PORT->Group[port_no].PINCFG[pin_no].bit.PMUXEN = 1; // Enable peripheral mux
+
+    if (pin_no & 1) // Odd pin number
     {
-        PORT->Group[static_cast<uint8_t>(port_)].PMUX[pin_ >> 1].bit.PMUXO = 0x1; // Function B (ADC)
+        PORT->Group[port_no].PMUX[pin_no >> 1].bit.PMUXO = 0x1; // Function B (ADC)
     }
     else // Even pin number
     {
-        PORT->Group[static_cast<uint8_t>(port_)].PMUX[pin_ >> 1].bit.PMUXE = 0x1; // Function B (ADC)
+        PORT->Group[port_no].PMUX[pin_no >> 1].bit.PMUXE = 0x1; // Function B (ADC)
     }
     // Enable ADC
     ADC->CTRLA.bit.ENABLE = 1;

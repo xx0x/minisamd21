@@ -58,7 +58,8 @@ int main()
     chargeState.AttachInterrupt(Pin::InterruptMode::FALLING, ChargeStateCallback);
 
     // Initialize ADC
-    [[maybe_unused]] AdcInput adc = AdcInput::Create(Pin::PortName::PORTA, 2);
+    [[maybe_unused]] AdcInput adc(Pin(Pin::PortName::PORTA, 2));
+    adc.Init();
 
     // Initialize I2C
     I2C i2c(I2C::Interface::TWI0);
