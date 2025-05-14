@@ -43,6 +43,7 @@ add_executable(blink
     src/Sleep.cpp
     src/System.cpp
     src/AdcInput.cpp
+    src/PwmOutput.cpp
     src/I2C.cpp
     src/dev/OutShiftRegister.cpp
     src/dev/DS3231.cpp

@@ -5,6 +5,7 @@
 #include "minisamd21/Pin.hpp"
 #include "minisamd21/Sleep.hpp"
 #include "minisamd21/System.hpp"
+#include "minisamd21/PwmOutput.hpp"
 #include "minisamd21/dev/AT24XX.hpp"
 #include "minisamd21/dev/DS3231.hpp"
 #include "minisamd21/dev/OutShiftRegister.hpp"
@@ -56,6 +57,22 @@ int main()
     // Set up button interrupt - should trigger when button is pressed (FALLING edge)
     button.AttachInterrupt(Pin::InterruptMode::FALLING, ButtonCallback, true);
     chargeState.AttachInterrupt(Pin::InterruptMode::FALLING, ChargeStateCallback);
+
+    // Brightness control
+    PwmOutput brightness_out(Pin(Pin::PortName::PORTA, 6));
+    brightness_out.Init(PwmOutput::MAX_FREQUENCY);
+    for(uint8_t j = 0; j < 2; j++){
+        for (float i = 0; i < 1.0f; i += 0.01f)
+        {
+            brightness_out.Write(i);
+            System::DelayMs(10);
+        }
+        for (float i = 1.0f; i > 0.0f; i -= 0.01f)
+        {
+            brightness_out.Write(i);
+            System::DelayMs(10);
+        }
+    }
 
     // Initialize ADC
     [[maybe_unused]] AdcInput adc(Pin(Pin::PortName::PORTA, 2));
